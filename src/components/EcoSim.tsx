@@ -14,7 +14,7 @@ import {
 import { EnvironmentalProject } from '../types';
 
 interface EcoSimProps {
-  onExportToProject: (draft: Partial<EnvironmentalProject>) => void;
+  onExportToProject?: (draft: Partial<EnvironmentalProject>) => void;
 }
 
 interface Scenario {
@@ -127,6 +127,7 @@ export const EcoSim: React.FC<EcoSimProps> = ({ onExportToProject }) => {
       volunteersEnrolled: 0
     };
 
+    if (!onExportToProject) return;
     onExportToProject(draft);
     setExportNotification(`Cenário exportado com sucesso para o ECO-PROJECTS!`);
     setTimeout(() => setExportNotification(null), 4000);
@@ -284,15 +285,17 @@ export const EcoSim: React.FC<EcoSimProps> = ({ onExportToProject }) => {
           </div>
 
           {/* Action: Export to Project */}
-          <div className="pt-2 border-t border-slate-100">
-            <button
-              onClick={() => handleExportProject(activeScenario)}
-              className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg shadow-xs flex items-center justify-center space-x-2 transition-colors"
-            >
-              <FileSpreadsheet className="w-4 h-4" />
-              <span>Exportar Cenário como Projeto no ECO-PROJECTS</span>
-            </button>
-          </div>
+          {onExportToProject && (
+            <div className="pt-2 border-t border-slate-100">
+              <button
+                onClick={() => handleExportProject(activeScenario)}
+                className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg shadow-xs flex items-center justify-center space-x-2 transition-colors"
+              >
+                <FileSpreadsheet className="w-4 h-4" />
+                <span>Exportar Cenário como Projeto no ECO-PROJECTS</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Outcomes & Multi-Scenario Comparison Column */}

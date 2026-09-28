@@ -10,7 +10,7 @@ import { Globe, SlidersHorizontal, Wind, Waves, Sparkles } from 'lucide-react';
 
 export const SimulationsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { addProject } = useApp();
+  const { addProject, canCreateProjects } = useApp();
   const [activeSimulationMode, setActiveSimulationMode] = useState<
     'clima_mapa' | 'inundacao_mares' | 'ciclones_ingd' | 'ecosim_parametros'
   >('clima_mapa');
@@ -45,6 +45,11 @@ export const SimulationsPage: React.FC = () => {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
+      {!canCreateProjects && (
+        <p role="status" className="border border-slate-200 bg-white px-4 py-3 text-xs text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
+          A exportação de cenários como projetos exige perfil Gestor ou Administrador autorizado no servidor.
+        </p>
+      )}
       {/* Simulation Mode Switcher Tabs */}
       <div className="flex items-center justify-between flex-wrap gap-3 bg-white dark:bg-slate-900 p-2 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
         <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
@@ -105,7 +110,7 @@ export const SimulationsPage: React.FC = () => {
       {/* Render Active View */}
       {activeSimulationMode === 'clima_mapa' ? (
         <ClimateSimulationMap
-          onExportToProject={handleExportSimToProject}
+          onExportToProject={canCreateProjects ? handleExportSimToProject : undefined}
           onNewOccurrence={() => navigate('/ocorrencias?novo=true')}
         />
       ) : activeSimulationMode === 'inundacao_mares' ? (
@@ -113,7 +118,7 @@ export const SimulationsPage: React.FC = () => {
       ) : activeSimulationMode === 'ciclones_ingd' ? (
         <CycloneSimulationEngine />
       ) : (
-        <EcoSim onExportToProject={handleExportSimToProject} />
+        <EcoSim onExportToProject={canCreateProjects ? handleExportSimToProject : undefined} />
       )}
     </div>
   );

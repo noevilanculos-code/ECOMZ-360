@@ -16,12 +16,14 @@ import { MOZAMBIQUE_PROVINCES } from '../data/mockData';
 
 interface EcoProjectsProps {
   projects: EnvironmentalProject[];
+  canCreateProjects: boolean;
   onSelectProject: (project: EnvironmentalProject) => void;
   onNewProject: (project: EnvironmentalProject) => Promise<EnvironmentalProject>;
 }
 
 export const EcoProjects: React.FC<EcoProjectsProps> = ({
   projects,
+  canCreateProjects,
   onSelectProject,
   onNewProject
 }) => {
@@ -104,15 +106,22 @@ export const EcoProjects: React.FC<EcoProjectsProps> = ({
               Projetos com prefixo DEMO são fictícios e servem apenas para apresentação.
             </p>
           )}
+          {!canCreateProjects && (
+            <p role="status" className="mt-1 text-xs text-slate-600">
+              A criação de projetos exige perfil Gestor ou Administrador autorizado no servidor.
+            </p>
+          )}
         </div>
 
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-xs flex items-center space-x-1.5 transition-colors self-start sm:self-auto"
-        >
-          <PlusCircle className="w-4 h-4" />
-          <span>+ Criar Novo Projeto</span>
-        </button>
+        {canCreateProjects && (
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-xs flex items-center space-x-1.5 transition-colors self-start sm:self-auto"
+          >
+            <PlusCircle className="w-4 h-4" />
+            <span>+ Criar Novo Projeto</span>
+          </button>
+        )}
       </div>
 
       {/* Projects Grid */}

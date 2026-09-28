@@ -106,6 +106,7 @@ export interface AppContextType {
   logout: () => void;
   occurrences: Occurrence[];
   projects: EnvironmentalProject[];
+  canCreateProjects: boolean;
   notices: NoticeItem[];
   news: NewsItem[];
   simulations: SimulationScenario[];
@@ -151,6 +152,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [occurrences, setOccurrences] = useState<Occurrence[]>(DEMO_OCCURRENCES);
   const [projects, setProjects] = useState<EnvironmentalProject[]>(DEMO_PROJECTS);
+  const [canCreateProjects, setCanCreateProjects] = useState(false);
   const [notices, setNotices] = useState<NoticeItem[]>(MASTER_NOTICES);
   const [news, setNews] = useState<NewsItem[]>(MASTER_NEWS);
   const [simulations, setSimulations] = useState<SimulationScenario[]>(MASTER_SIMULATIONS);
@@ -252,7 +254,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }), []);
 
   useEffect(() => {
-    if (!isLoggedIn) return;
+    if (!isLoggedIn) {
+      setCanCreateProjects(false);
+      return;
+    }
     let cancelled = false;
     listOccurrences()
       .then(({ data }) => {
@@ -263,8 +268,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (!cancelled && import.meta.env.DEV) setOccurrences(DEMO_OCCURRENCES);
       });
     listProjects()
-      .then(({ data }) => {
+      .then(({ data, permissions }) => {
         if (!cancelled) {
+          setCanCreateProjects(permissions?.canCreateProjects === true);
           const loadedProjects = data.length ? data : DEMO_PROJECTS;
           const loadedIds = new Set(loadedProjects.map((project) => project.id));
           setProjects((previous) => [
@@ -275,6 +281,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       })
       .catch((error) => {
         console.error('Não foi possível carregar projetos persistidos:', error);
+        if (!cancelled) setCanCreateProjects(false);
         if (!cancelled && import.meta.env.DEV) setProjects(DEMO_PROJECTS);
       });
     return () => {
@@ -499,6 +506,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const logout = () => {
     void firebaseLogout().catch((error) => console.error('Falha ao terminar sessão Firebase:', error));
     setIsLoggedIn(false);
+    setCanCreateProjects(false);
     setUser(INITIAL_USER_PROFILE);
     setActiveRoleState('admin');
     localStorage.setItem('ecomz_auth', 'logged_out');
@@ -592,6 +600,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         logout,
         occurrences,
         projects,
+        canCreateProjects,
         notices,
         news,
         simulations,

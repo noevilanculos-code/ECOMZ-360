@@ -7,7 +7,7 @@ import { useApp } from '../context/AppContext';
 
 export const ProjectsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { projects, occurrences, addProject } = useApp();
+  const { projects, occurrences, addProject, canCreateProjects } = useApp();
   const [activeSubTab, setActiveSubTab] = useState<'projetos' | 'acao' | 'fundos'>('projetos');
 
   return (
@@ -49,6 +49,7 @@ export const ProjectsPage: React.FC = () => {
       {activeSubTab === 'projetos' && (
         <EcoProjects
           projects={projects}
+          canCreateProjects={canCreateProjects}
           onSelectProject={(proj) => navigate(`/projetos/${proj.id}`)}
           onNewProject={(newProj) => addProject(newProj)}
         />

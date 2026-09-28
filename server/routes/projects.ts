@@ -76,6 +76,7 @@ const selectColumns = `id, title, category, province, district, lead_entity, sta
 router.get('/', requireFirebaseUser, async (request, response) => {
   const page = Math.max(1, Number(request.query.page) || 1);
   const pageSize = Math.min(100, Math.max(1, Number(request.query.pageSize) || 100));
+  const authUser = (request as AuthenticatedRequest).authenticatedUser;
   try {
     const database = getDatabase();
     const [rows] = await database.execute<ProjectRow[]>(
@@ -87,7 +88,8 @@ router.get('/', requireFirebaseUser, async (request, response) => {
     );
     return response.json({
       data: rows.map(toProject),
-      pagination: { page, pageSize, total: Number(countRow.total) }
+      pagination: { page, pageSize, total: Number(countRow.total) },
+      permissions: { canCreateProjects: ['admin', 'gestor'].includes(authUser?.role || '') }
     });
   } catch (error) {
     console.error('Falha ao listar projetos persistidos:', error);

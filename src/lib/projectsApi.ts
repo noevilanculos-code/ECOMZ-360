@@ -4,6 +4,7 @@ import { authenticatedFetch } from './occurrencesApi';
 interface ProjectPage {
   data: EnvironmentalProject[];
   pagination: { page: number; pageSize: number; total: number };
+  permissions: { canCreateProjects: boolean };
 }
 
 export const listProjects = (): Promise<ProjectPage> =>
