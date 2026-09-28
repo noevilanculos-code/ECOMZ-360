@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ECO-MZ 360 - Sistema de Gestão Ambiental (PHP & MySQL)</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Barra de Navegação -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <div class="brand">
+        <span class="logo-badge">ECO-MZ 360</span>
+        <span class="brand-sub">Versão PHP + MySQL + Vanilla JS</span>
+      </div>
+
+      <nav class="nav-links">
+        <a href="#ocorrencias" class="active">Ocorrências</a>
+        <a href="#projetos">Projetos</a>
+        <a href="#nova-ocorrencia" class="btn-primary">+ Nova Denúncia</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Banner Principal -->
+  <section class="hero-banner">
+    <div class="container">
+      <h1>Plataforma Inteligente de Observação Ambiental de Moçambique</h1>
+      <p>Desenvolvida com a arquitetura padrão <strong>PHP, MySQL, HTML5, CSS3 e JavaScript</strong> para implantação em servidores Apache/LAMP/XAMPP.</p>
+    </div>
+  </section>
+
+  <!-- Estatísticas Rápidas -->
+  <section class="stats-section">
+    <div class="container stats-grid">
+      <div class="stat-card">
+        <span class="stat-title">Ocorrências no MySQL</span>
+        <div class="stat-value" id="total-ocorrencias">--</div>
+        <span class="stat-footer">Sincronizado via PDO</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-title">Projetos Ativos</span>
+        <div class="stat-value" id="total-projetos">--</div>
+        <span class="stat-footer">Moçambique Verde</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-title">Árvores Replantadas</span>
+        <div class="stat-value" id="total-arvores">--</div>
+        <span class="stat-footer">Mangais e Miombo</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-title">Status do Banco</span>
+        <div class="stat-badge online" id="db-status">MySQL Conectado</div>
+        <span class="stat-footer">Host: localhost / ecomz_db</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Conteúdo Principal -->
+  <main class="container main-content">
+    
+    <!-- Seção de Ocorrências -->
+    <section id="ocorrencias" class="content-block">
+      <div class="block-header">
+        <h2>Registo de Ocorrências e Denúncias Ambientais</h2>
+        <div class="filters">
+          <select id="filtro-provincia" onchange="carregarOcorrencias()">
+            <option value="">Todas as Províncias</option>
+            <option value="Cabo Delgado">Cabo Delgado</option>
+            <option value="Niassa">Niassa</option>
+            <option value="Nampula">Nampula</option>
+            <option value="Zambézia">Zambézia</option>
+            <option value="Tete">Tete</option>
+            <option value="Manica">Manica</option>
+            <option value="Sofala">Sofala</option>
+            <option value="Inhambane">Inhambane</option>
+            <option value="Gaza">Gaza</option>
+            <option value="Maputo Província">Maputo Província</option>
+            <option value="Maputo Cidade">Maputo Cidade</option>
+          </select>
+          <button onclick="carregarOcorrencias()" class="btn-secondary">Atualizar Lista</button>
+        </div>
+      </div>
+
+      <!-- Tabela de Ocorrências vindas do MySQL -->
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Título / Agressão</th>
+              <th>Categoria</th>
+              <th>Província</th>
+              <th>Distrito</th>
+              <th>Gravidade</th>
+              <th>Status</th>
+              <th>Data</th>
+            </tr>
+          </thead>
+          <tbody id="lista-ocorrencias">
+            <tr>
+              <td colspan="8" class="text-center">Carregando dados da API PHP / MySQL...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Formulário para Cadastrar Nova Denúncia -->
+    <section id="nova-ocorrencia" class="content-block form-block">
+      <div class="block-header">
+        <h2>Cadastrar Nova Ocorrência Ambiental</h2>
+        <p>Os dados serão gravados diretamente na tabela <code>ocorrencias</code> do MySQL via <code>api/ocorrencias.php</code>.</p>
+      </div>
+
+      <form id="form-ocorrencia" onsubmit="salvarOcorrencia(event)">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="titulo">Título da Ocorrência *</label>
+            <input type="text" id="titulo" required placeholder="Ex: Queimada descontrolada de machamba">
+          </div>
+
+          <div class="form-group">
+            <label for="categoria">Categoria *</label>
+            <select id="categoria" required>
+              <option value="Desmatamento">Desmatamento Ilegal</option>
+              <option value="Queimada">Queimada Descontrolada</option>
+              <option value="Mangaal">Corte de Mangal</option>
+              <option value="Poluicao_Agua">Poluição de Rios / Baías</option>
+              <option value="Residuos">Depósito Clandestino de Resíduos</option>
+              <option value="Outro">Outro Impacto</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="provincia">Província *</label>
+            <select id="provincia" required>
+              <option value="">Selecione a Província</option>
+              <option value="Cabo Delgado">Cabo Delgado</option>
+              <option value="Niassa">Niassa</option>
+              <option value="Nampula">Nampula</option>
+              <option value="Zambézia">Zambézia</option>
+              <option value="Tete">Tete</option>
+              <option value="Manica">Manica</option>
+              <option value="Sofala">Sofala</option>
+              <option value="Inhambane">Inhambane</option>
+              <option value="Gaza">Gaza</option>
+              <option value="Maputo Província">Maputo Província</option>
+              <option value="Maputo Cidade">Maputo Cidade</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="distrito">Distrito *</label>
+            <input type="text" id="distrito" required placeholder="Ex: Búzi, Marrupa, Matola...">
+          </div>
+
+          <div class="form-group">
+            <label for="gravidade">Nível de Gravidade</label>
+            <select id="gravidade">
+              <option value="baixa">Baixa</option>
+              <option value="media" selected>Média</option>
+              <option value="alta">Alta</option>
+              <option value="critica">Crítica (Emergência)</option>
+            </select>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="descricao">Descrição Detalhada dos Fatos *</label>
+            <textarea id="descricao" rows="4" required placeholder="Descreva o que ocorreu, extensão do dano e coordenadas se disponível..."></textarea>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" id="btn-submit" class="btn-primary">Gravar no Banco MySQL</button>
+        </div>
+        <div id="mensagem-retorno" class="alert-box"></div>
+      </form>
+    </section>
+
+    <!-- Seção de Projetos -->
+    <section id="projetos" class="content-block">
+      <div class="block-header">
+        <h2>Projetos Ecológicos Comunitários</h2>
+        <p>Iniciativas registradas na tabela <code>projetos</code>.</p>
+      </div>
+
+      <div class="cards-grid" id="lista-projetos">
+        <!-- Preenchido via JavaScript -->
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-content">
+      <p>ECO-MZ 360 &copy; 2026 • Plataforma de Monitoramento Ambiental de Moçambique</p>
+      <p class="tech-stack">Stack: <strong>HTML5</strong> • <strong>CSS3</strong> • <strong>JavaScript</strong> • <strong>PHP (PDO)</strong> • <strong>MySQL</strong></p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

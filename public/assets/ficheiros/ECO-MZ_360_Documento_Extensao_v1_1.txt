@@ -1,0 +1,285 @@
+ECO-MZ 360
+
+Plataforma Inteligente de Observação, Diagnóstico, Simulação e Gestão Ambiental de Moçambique
+
+DOCUMENTO DE EXTENSÃO FUNCIONAL
+
+Novas funcionalidades, novos módulos e ganhos de utilidade
+
+Versão 1.1 — complementa o PRD e o Documento Técnico do Programador v1.0
+
+Líder: Noé Samuel Vilanculos
+
+Integrantes: Elias Félix Mufunde · Roque Armando Maurício · Joel Ali Viano
+
+1. Objetivo deste documento
+
+Este documento complementa o PRD e o Documento Técnico do ECO-MZ 360, propondo um conjunto de novas funcionalidades, oito novos módulos complementares e um reforço de utilidade para cada perfil de utilizador. O objetivo é aumentar o valor prático da plataforma sem alterar o seu conceito central — o ciclo OBSERVAR → LOCALIZAR → DIAGNOSTICAR → SIMULAR → PLANEAR → EXECUTAR → MONITORIZAR → AVALIAR → INFORMAR continua a ser o núcleo do sistema.
+
+Todas as propostas seguem a convenção de nomenclatura já usada no projeto (ECO-XXX) e o princípio arquitetural definido no Documento Técnico: um único produto, com utilizadores, localidades, dados e histórico partilhados entre módulos.
+
+2. Novos módulos complementares
+
+Estes oito módulos podem ser desenvolvidos em fases futuras, sem bloquear a entrega do protótipo académico. Cada um resolve uma limitação de utilidade identificada na versão atual do sistema.
+
+ECO-EDU — Educação Ambiental
+
+Módulo de conteúdos educativos que transforma cada ocorrência e diagnóstico em oportunidade de aprendizagem, aproximando a plataforma de escolas, universidades e do público em geral.
+
+Funcionalidades principais:
+
+-   Biblioteca de artigos, vídeos e infográficos por tema ambiental (água, resíduos, biodiversidade, clima).
+
+-   Trilhas de aprendizagem associadas às categorias de ocorrências mais frequentes numa região.
+
+-   Questionários e certificados de participação para escolas e universidades.
+
+-   Ligação direta entre uma ocorrência registada e o conteúdo educativo relacionado.
+
+Valor acrescentado: Aumenta o impacto social do sistema e cria uma razão para os cidadãos voltarem à plataforma mesmo sem uma ocorrência para reportar.
+
+ECO-VOLUNTEER — Voluntariado e Ação Comunitária
+
+Conecta cidadãos dispostos a participar ativamente com projetos e intervenções que precisam de mão-de-obra ou apoio local.
+
+Funcionalidades principais:
+
+-   Publicação de oportunidades de voluntariado ligadas a projetos ECO-PROJECTS.
+
+-   Inscrição, confirmação de presença e registo de horas de voluntariado.
+
+-   Perfil de voluntário com histórico de participação e badges de reconhecimento.
+
+-   Geração automática de certificados de participação.
+
+Valor acrescentado: Transforma participação cidadã passiva (reportar) em participação ativa (agir), reforçando a ligação da comunidade aos projetos.
+
+ECO-FUND — Financiamento e Apoio a Projetos
+
+Mecanismo de transparência financeira e angariação de apoio para projetos ambientais registados na plataforma.
+
+Funcionalidades principais:
+
+-   Página pública de cada projeto com orçamento, meta de financiamento e progresso.
+
+-   Registo de doações, patrocínios institucionais e parcerias.
+
+-   Relatório de utilização de fundos, associado às atividades do ECO-ACTION.
+
+-   Selo de "projeto financiado" visível no mapa e no dashboard.
+
+Valor acrescentado: Cria um canal estruturado para instituições e doadores apoiarem projetos concretos, aumentando a sustentabilidade do sistema.
+
+ECO-CERT — Certificação e Selo Verde
+
+Reconhecimento formal de instituições, empresas ou comunidades que cumprem boas práticas ambientais verificadas na plataforma.
+
+Funcionalidades principais:
+
+-   Critérios de certificação baseados em indicadores do ECO-DASH.
+
+-   Emissão de selo digital verificável, com validade temporal.
+
+-   Registo público de entidades certificadas, pesquisável no ECO-MAP.
+
+-   Processo de renovação e auditoria associado ao histórico do ECO-TIME.
+
+Valor acrescentado: Dá às instituições um incentivo concreto para colaborar com o sistema e cumprir boas práticas ambientais.
+
+ECO-FORUM — Comunidade e Discussão
+
+Espaço de discussão estruturado em torno de ocorrências, projetos e temas ambientais, complementando o registo formal de dados.
+
+Funcionalidades principais:
+
+-   Tópicos de discussão associados a uma ocorrência, projeto ou área geográfica.
+
+-   Moderação por técnicos e gestores, com regras de conduta claras.
+
+-   Sistema de perguntas e respostas para dúvidas frequentes da comunidade.
+
+-   Destaque automático de discussões relevantes no ECO-PULSE.
+
+Valor acrescentado: Dá voz à comunidade para além do simples registo de ocorrências, gerando contexto qualitativo que enriquece o diagnóstico.
+
+ECO-API — Integração e Dados Abertos
+
+Camada de acesso programático aos dados públicos da plataforma, para investigadores, ONGs e parceiros institucionais.
+
+Funcionalidades principais:
+
+-   API pública (REST) com dados anonimizados de ocorrências, indicadores e projetos.
+
+-   Exportação de relatórios em CSV, Excel e PDF diretamente do ECO-DASH.
+
+-   Documentação da API e chaves de acesso para parceiros autorizados.
+
+-   Portal de dados abertos com filtros por província, período e categoria.
+
+Valor acrescentado: Posiciona o ECO-MZ 360 como fonte de dados ambientais reutilizável, aumentando o seu alcance académico e institucional.
+
+ECO-MOBILE — Aplicação Móvel e Modo Offline
+
+Extensão da participação cidadã para zonas rurais com conectividade limitada, através de uma aplicação leve.
+
+Funcionalidades principais:
+
+-   Registo de ocorrências offline, com sincronização automática quando há rede.
+
+-   Notificações push de alertas para a área do utilizador.
+
+-   Captura de fotografia e localização GPS diretamente no terreno.
+
+-   Interface simplificada, otimizada para dispositivos de baixo custo.
+
+Valor acrescentado: Alarga o alcance do ECO-CITIZEN a regiões onde o acesso à internet é instável, que são frequentemente as mais afetadas ambientalmente.
+
+ECO-BOT — Assistente Virtual
+
+Assistente conversacional que orienta o utilizador na utilização da plataforma e responde a dúvidas ambientais simples.
+
+Funcionalidades principais:
+
+-   Apoio ao registo de ocorrências, sugerindo a categoria correta.
+
+-   Respostas a perguntas frequentes sobre o estado de uma ocorrência ou projeto.
+
+-   Encaminhamento automático para o módulo ou técnico adequado.
+
+-   Disponível no site e, futuramente, no ECO-MOBILE.
+
+Valor acrescentado: Reduz a barreira de entrada para cidadãos menos familiarizados com plataformas digitais.
+
+3. Funcionalidades adicionais aos módulos existentes
+
+Além dos novos módulos, os módulos já definidos no PRD ganham funcionalidades adicionais que aumentam a sua utilidade prática.
+
+3.1 ECO-DATA
+
+-   Histórico de alterações (auditoria) por registo, com utilizador e data/hora.
+
+-   Importação em lote de dados históricos (CSV/Excel) para arranque rápido do sistema.
+
+-   Deteção automática de registos duplicados ou incoerentes.
+
+3.2 ECO-MAP
+
+-   Comparação de mapas entre dois períodos (antes/depois de uma intervenção).
+
+-   Camada de densidade (mapa de calor) para áreas com maior concentração de ocorrências.
+
+-   Exportação de recortes do mapa em imagem ou PDF para relatórios.
+
+3.3 ECO-CITIZEN
+
+-   Sistema de reputação simples para cidadãos com histórico de reportes validados.
+
+-   Denúncia com opção de anonimato, mantendo apenas os dados essenciais para validação.
+
+-   Notificações ao cidadão em cada mudança de estado da sua ocorrência.
+
+3.4 ECO-DIAG
+
+-   Classificação automática de nível de risco por área (baixo, médio, alto, crítico).
+
+-   Deteção de padrões sazonais (por exemplo, queimadas recorrentes em determinada época).
+
+-   Relatório de diagnóstico exportável, com recomendações associadas.
+
+3.5 ECO-SIM
+
+-   Biblioteca de cenários pré-configurados (reflorestamento, gestão de resíduos, proteção costeira).
+
+-   Comparação lado a lado de até três cenários em simultâneo.
+
+-   Exportação dos resultados da simulação para o ECO-PROJECTS, gerando automaticamente um rascunho de projeto.
+
+3.6 ECO-ALERT
+
+-   Regras configuráveis pelo gestor, sem necessidade de alteração de código (ex.: "mais de 5 ocorrências do mesmo tipo em 7 dias").
+
+-   Canais múltiplos de notificação: e-mail, SMS e notificação push.
+
+-   Histórico de alertas emitidos, com taxa de resposta da comunidade.
+
+3.7 ECO-PROJECTS / ECO-ACTION
+
+-   Modelos (templates) de projeto reutilizáveis por categoria ambiental.
+
+-   Atribuição de tarefas a técnicos, com prazos e progresso individual.
+
+-   Galeria de evidências fotográficas por atividade executada.
+
+3.8 ECO-DASH
+
+-   Dashboards personalizados por perfil (cidadão, técnico, gestor).
+
+-   Comparação de indicadores entre províncias ou distritos.
+
+-   Relatórios agendados, enviados automaticamente por e-mail a gestores.
+
+4. Utilidade acrescentada por perfil de utilizador
+
+A tabela seguinte resume o ganho prático das novas funcionalidades para cada perfil de utilizador definido no Documento Técnico.
+
+  ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+  Perfil           Novo valor prático
+  ---------------- -----------------------------------------------------------------------------------------------------------------------------------------------
+  Cidadão          Pode aprender (ECO-EDU), participar ativamente (ECO-VOLUNTEER), reportar com anonimato e acompanhar o estado da sua ocorrência em tempo real.
+
+  Técnico          Recebe tarefas atribuídas com prazos, regista evidências fotográficas e configura alertas sem depender de programação.
+
+  Instituição      Pode angariar apoio (ECO-FUND), obter certificação (ECO-CERT) e exportar dados via ECO-API para relatórios próprios.
+
+  Gestor           Ganha dashboards comparativos, relatórios agendados e regras de alerta configuráveis, sem intervenção técnica.
+
+  Admin            Controla auditoria completa, certificação de entidades e políticas de acesso à API pública.
+  ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+5. Arquitetura funcional atualizada
+
+Com as novas propostas, a arquitetura funcional do ECO-MZ 360 passa de 13 para 21 módulos, organizados em cinco grupos:
+
+Núcleo de dados
+
+-   ECO-DATA
+
+Observação e território
+
+-   ECO-MAP · ECO-CITIZEN · ECO-PULSE
+
+Análise
+
+-   ECO-DIAG · ECO-SIM · ECO-DASH
+
+Ação e participação
+
+-   ECO-PROJECTS · ECO-ACTION · ECO-TIME · ECO-VOLUNTEER · ECO-FUND · ECO-CERT
+
+Comunicação e acesso
+
+-   ECO-ALERT · ECO-NEWS · ECO-AVISOS · ECO-EDU · ECO-FORUM · ECO-API · ECO-MOBILE · ECO-BOT
+
+6. Priorização sugerida de implementação
+
+Para não comprometer o prazo do protótipo académico, sugere-se implementar os novos módulos por fases:
+
+  -------------------------------------------------------------------------------------------------------------------------------------
+  Fase                       Módulos                             Justificação
+  -------------------------- ----------------------------------- ----------------------------------------------------------------------
+  Fase 1 — Protótipo atual   Os 13 módulos já definidos no PRD   Base obrigatória para a apresentação nas Jornadas Científicas.
+
+  Fase 2 — Curto prazo       ECO-VOLUNTEER, ECO-EDU, ECO-FORUM   Baixa complexidade técnica, alto impacto social e de participação.
+
+  Fase 3 — Médio prazo       ECO-API, ECO-CERT, ECO-FUND         Requerem regras de negócio e integrações mais elaboradas.
+
+  Fase 4 — Longo prazo       ECO-MOBILE, ECO-BOT                 Dependem de infraestrutura adicional (app móvel, IA conversacional).
+  -------------------------------------------------------------------------------------------------------------------------------------
+
+7. Conclusão
+
+As funcionalidades e módulos propostos neste documento não alteram o conceito central do ECO-MZ 360 — reforçam-no. Cada novo módulo liga-se a um ponto do ciclo já definido (observar, localizar, diagnosticar, simular, planear, executar, monitorizar, avaliar, informar) e aumenta o valor prático da plataforma para cidadãos, técnicos, instituições e gestores.
+
+A frase oficial do projeto mantém-se válida e é agora ainda mais completa:
+
+  "O ECO-MZ 360 é uma plataforma web inteligente que integra dados ambientais, informação geográfica, participação cidadã, educação, voluntariado, financiamento, diagnóstico, simulação e gestão de projetos para transformar informação dispersa em conhecimento, ação e resultado ambiental."

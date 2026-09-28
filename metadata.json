@@ -1,0 +1,11 @@
+{
+  "name": "ECOMZ",
+  "description": "Plataforma Inteligente de Observação, Diagnóstico, Simulação e Gestão Ambiental de Moçambique",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
