@@ -3,6 +3,9 @@ import path from 'path';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
 import { createServer as createViteServer } from 'vite';
+import occurrencesRouter from './server/routes/occurrences';
+import projectsRouter from './server/routes/projects';
+import { getDatabase } from './server/db';
 
 dotenv.config();
 
@@ -11,6 +14,8 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
 app.use(express.json({ limit: '128kb' }));
 app.use('/assets', express.static(path.join(process.cwd(), 'assets')));
+app.use('/api/v1/occurrences', occurrencesRouter);
+app.use('/api/v1/projects', projectsRouter);
 
 const AI_REQUEST_WINDOW_MS = 60_000;
 const AI_REQUEST_LIMIT = 10;
@@ -51,6 +56,8 @@ function getGeminiClient(): GoogleGenAI | null {
     aiClient = new GoogleGenAI({
       apiKey,
       httpOptions: {
+        timeout: 10000,
+        retryOptions: { attempts: 1 },
         headers: {
           'User-Agent': 'aistudio-build',
         },
@@ -92,6 +99,15 @@ app.get('/api/health', (req, res) => {
     status: 'ok',
     timestamp: new Date().toISOString()
   });
+});
+
+app.get('/api/health/ready', async (_req, res) => {
+  try {
+    await getDatabase().query('SELECT 1');
+    return res.json({ status: 'ready', database: 'ok' });
+  } catch {
+    return res.status(503).json({ status: 'not_ready', database: 'unavailable' });
+  }
 });
 
 // API: Multi-turn Chatbot with Gemini, Role System Instruction, Search & Maps Grounding
@@ -196,35 +212,56 @@ app.post('/api/gemini/chat', async (req, res) => {
 
     let response;
     let responseModel = targetModel;
-    try {
-      response = await ai.models.generateContent({
-        model: targetModel,
-        contents,
-        config
-      });
-    } catch (apiError: any) {
-      const errMsg = apiError.message || String(apiError);
-      const isQuota = errMsg.includes('429') || errMsg.includes('RESOURCE_EXHAUSTED') || errMsg.includes('quota');
-      const isUnavailable = errMsg.includes('UNAVAILABLE') || errMsg.includes('503') || errMsg.includes('high demand');
+    let lastApiError: any;
+    const fallbackModels = [...new Set([
+      targetModel,
+      'gemini-3.5-flash-lite',
+      'gemini-3.1-flash-lite'
+    ])];
+    const fallbackConfig = { systemInstruction };
 
-      if (isQuota || isUnavailable) {
-        console.info('Modelo Gemini temporariamente indisponível. A tentar o modelo Flash Lite sem grounding...');
-        const fallbackConfig = { systemInstruction };
+    for (let modelIndex = 0; modelIndex < fallbackModels.length; modelIndex += 1) {
+      const candidateModel = fallbackModels[modelIndex];
+      const attemptLimit = 1;
+
+      for (let attempt = 0; attempt < attemptLimit; attempt += 1) {
         try {
           response = await ai.models.generateContent({
-            model: 'gemini-3.1-flash-lite',
+            model: candidateModel,
             contents,
-            config: fallbackConfig
+            config: modelIndex === 0 ? config : fallbackConfig
           });
-          responseModel = 'gemini-3.1-flash-lite';
-        } catch (innerError) {
-          throw innerError;
+          responseModel = candidateModel;
+          break;
+        } catch (apiError: any) {
+          lastApiError = apiError;
+          const errMsg = apiError.message || String(apiError);
+          const status = Number(apiError.status || apiError.error?.code);
+          const errorCode = String(apiError.code || apiError.cause?.code || '');
+          const normalizedError = errMsg.toLowerCase();
+          const isQuota = status === 429 || errMsg.includes('RESOURCE_EXHAUSTED') || errMsg.toLowerCase().includes('quota');
+          const isUnavailable = [500, 502, 503, 504].includes(status) ||
+            errMsg.includes('UNAVAILABLE') || errMsg.includes('high demand');
+          const isNetworkError = ['UND_ERR_CONNECT_TIMEOUT', 'UND_ERR_SOCKET', 'ETIMEDOUT', 'ECONNRESET', 'ENETUNREACH'].includes(errorCode) ||
+            normalizedError.includes('fetch failed') || normalizedError.includes('network timeout') ||
+            normalizedError.includes('timed out') || normalizedError.includes('timeout');
+
+          if (!isQuota && !isUnavailable && !isNetworkError) {
+            console.warn('Tentativa com Gemini resultou em aviso:', errMsg);
+            throw apiError;
+          }
+
+          const hasFallback = modelIndex + 1 < fallbackModels.length;
+          if (!hasFallback) break;
+
+          console.info(`Modelo Gemini ${candidateModel} indisponível (${status || 'temporário'}).`);
         }
-      } else {
-        console.warn('Tentativa com Gemini resultou em aviso:', errMsg);
-        throw apiError;
       }
+
+      if (response) break;
     }
+
+    if (!response) throw lastApiError || new Error('Nenhum modelo Gemini está disponível.');
 
     const responseText = response.text || 'Sem resposta de texto gerada.';
 
@@ -253,10 +290,11 @@ app.post('/api/gemini/chat', async (req, res) => {
         if (chunk.maps) {
           const mapUri = chunk.maps.uri || (chunk.maps.title ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(chunk.maps.title)}` : '');
           if (mapUri) {
-            const snippets = chunk.maps.placeAnswerSources?.reviewSnippets;
-            const snippetText = Array.isArray(snippets) && snippets.length > 0
-              ? snippets.join(' • ')
-              : (chunk.maps.placeAnswerSources?.reviewSnippets?.[0] || undefined);
+            const snippets = chunk.maps.placeAnswerSources?.reviewSnippets || [];
+            const snippetText = snippets
+              .map((snippet) => snippet.review || snippet.title)
+              .filter((text): text is string => Boolean(text))
+              .join(' • ') || undefined;
             groundingSources.push({
               type: 'maps',
               title: chunk.maps.title || 'Localização no Google Maps',
@@ -283,7 +321,12 @@ app.post('/api/gemini/chat', async (req, res) => {
     const errMsg = error.message || String(error);
     const isQuotaExceeded = errMsg.includes('429') || errMsg.includes('RESOURCE_EXHAUSTED') || errMsg.includes('quota');
     const isGeminiApiDisabled = errMsg.includes('SERVICE_DISABLED') || errMsg.includes('generativelanguage.googleapis.com');
-    const isModelUnavailable = errMsg.includes('UNAVAILABLE') || errMsg.includes('503') || errMsg.includes('high demand');
+    const errorCode = String(error.code || error.cause?.code || '');
+    const isNetworkError = ['UND_ERR_CONNECT_TIMEOUT', 'UND_ERR_SOCKET', 'ETIMEDOUT', 'ECONNRESET', 'ENETUNREACH'].includes(errorCode) ||
+      errMsg.toLowerCase().includes('fetch failed') ||
+      errMsg.toLowerCase().includes('timed out') || errMsg.toLowerCase().includes('timeout');
+    const isModelUnavailable = errMsg.includes('UNAVAILABLE') || errMsg.includes('503') ||
+      errMsg.includes('high demand') || isNetworkError;
     if (!isQuotaExceeded) {
       console.error('Erro na chamada Gemini:', error);
     }

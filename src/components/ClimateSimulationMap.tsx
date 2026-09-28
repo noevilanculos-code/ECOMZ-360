@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { addResilientTileLayer } from '../lib/resilientTileLayer';
 import {
   Waves,
   TreePine,
@@ -160,11 +161,12 @@ export const ClimateSimulationMap: React.FC<ClimateSimulationMapProps> = ({
       });
 
       // OpenStreetMap tiles do not require an API key.
-      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      addResilientTileLayer(map, {
+        url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
         attribution: '&copy; OpenStreetMap contributors',
         maxNativeZoom: 19,
         maxZoom: 22
-      }).addTo(map);
+      });
 
       // Attribution
       L.control.attribution({ position: 'bottomright', prefix: 'ECO-MZ 360' }).addTo(map);

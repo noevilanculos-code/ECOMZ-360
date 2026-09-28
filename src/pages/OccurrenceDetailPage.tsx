@@ -40,10 +40,14 @@ export const OccurrenceDetailPage: React.FC = () => {
     );
   }
 
-  const handleStatusChange = (newStatus: OccurrenceStatus) => {
-    setCurrentStatus(newStatus);
-    updateOccurrenceStatus(occurrence.id, newStatus);
-    setShowStatusModal(false);
+  const handleStatusChange = async (newStatus: OccurrenceStatus) => {
+    try {
+      await updateOccurrenceStatus(occurrence.id, newStatus);
+      setCurrentStatus(newStatus);
+      setShowStatusModal(false);
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : 'Não foi possível atualizar a ocorrência.');
+    }
   };
 
   const handleGoToMap = () => {

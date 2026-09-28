@@ -17,7 +17,7 @@ import { MOZAMBIQUE_PROVINCES } from '../data/mockData';
 interface EcoProjectsProps {
   projects: EnvironmentalProject[];
   onSelectProject: (project: EnvironmentalProject) => void;
-  onNewProject: (project: EnvironmentalProject) => void;
+  onNewProject: (project: EnvironmentalProject) => Promise<EnvironmentalProject>;
 }
 
 export const EcoProjects: React.FC<EcoProjectsProps> = ({
@@ -37,15 +37,19 @@ export const EcoProjects: React.FC<EcoProjectsProps> = ({
   const [newBudget, setNewBudget] = useState('3500000');
   const [newDescription, setNewDescription] = useState('');
   const [newKeyMetric, setNewKeyMetric] = useState('Hectares regenerados');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const filteredProjects = projects.filter((p) => {
     if (selectedFilterCategory !== 'Todas' && p.category !== selectedFilterCategory) return false;
     return true;
   });
 
-  const handleCreateProject = (e: React.FormEvent) => {
+  const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTitle.trim() || !newDistrict.trim()) return;
+    if (isSubmitting || !newTitle.trim() || !newDistrict.trim()) return;
+    setIsSubmitting(true);
+    setSubmitError(null);
 
     const project: EnvironmentalProject = {
       id: `proj-${Date.now()}`,
@@ -67,12 +71,17 @@ export const EcoProjects: React.FC<EcoProjectsProps> = ({
       volunteersEnrolled: 0
     };
 
-    onNewProject(project);
-    setShowCreateModal(false);
-    // Reset
-    setNewTitle('');
-    setNewDistrict('');
-    setNewDescription('');
+    try {
+      await onNewProject(project);
+      setShowCreateModal(false);
+      setNewTitle('');
+      setNewDistrict('');
+      setNewDescription('');
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Não foi possível registar o projeto.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -90,6 +99,11 @@ export const EcoProjects: React.FC<EcoProjectsProps> = ({
           <p className="text-xs text-slate-500">
             Acompanhamento de iniciativas de reflorestamento, conservação hídrica e gestão de resíduos em Moçambique.
           </p>
+          {projects.some((project) => project.id.startsWith('demo-')) && (
+            <p className="mt-1 text-xs font-semibold text-amber-800">
+              Projetos com prefixo DEMO são fictícios e servem apenas para apresentação.
+            </p>
+          )}
         </div>
 
         <button
@@ -192,6 +206,7 @@ export const EcoProjects: React.FC<EcoProjectsProps> = ({
             </div>
 
             <form onSubmit={handleCreateProject} className="space-y-3 text-xs">
+              {submitError && <p role="alert" className="text-red-700">{submitError}</p>}
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Título do Projeto *</label>
                 <input
@@ -290,9 +305,10 @@ export const EcoProjects: React.FC<EcoProjectsProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg"
+                  disabled={isSubmitting}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-bold rounded-lg"
                 >
-                  Registar Projeto
+                  {isSubmitting ? 'A guardar...' : 'Registar Projeto'}
                 </button>
               </div>
             </form>

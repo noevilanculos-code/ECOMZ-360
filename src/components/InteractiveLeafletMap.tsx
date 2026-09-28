@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { addResilientTileLayer } from '../lib/resilientTileLayer';
 import {
   Occurrence,
   MozambiqueProvince,
@@ -266,13 +267,13 @@ export const InteractiveLeafletMap: React.FC<InteractiveLeafletMapProps> = ({
     hybrid: {
       url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       attribution: 'Esri World Imagery, Maxar, Earthstar Geographics',
-      maxNativeZoom: 18,
+      maxNativeZoom: 16,
       maxZoom: 20
     },
     satellite: {
       url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       attribution: 'Esri World Imagery, Maxar',
-      maxNativeZoom: 18,
+      maxNativeZoom: 16,
       maxZoom: 20
     },
     osm: {
@@ -398,13 +399,15 @@ export const InteractiveLeafletMap: React.FC<InteractiveLeafletMapProps> = ({
 
     // Base Tile Layer with maxNativeZoom to allow deep zooming without 404s
     const tileConfig = baseMapConfigs[currentBaseMap];
-    const initialTile = L.tileLayer(tileConfig.url, {
+    addResilientTileLayer(map, {
+      url: tileConfig.url,
       attribution: tileConfig.attribution,
       maxNativeZoom: tileConfig.maxNativeZoom,
       maxZoom: tileConfig.maxZoom,
-      subdomains: (tileConfig as any).subdomains || 'abc'
-    }).addTo(map);
-    currentTileLayerRef.current = initialTile;
+      subdomains: (tileConfig as any).subdomains
+    }, (layer) => {
+      currentTileLayerRef.current = layer;
+    });
 
     // Boundaries & Location Names overlay for pure satellite mode
     if (showLabelsOverlay && currentBaseMap === 'satellite') {
@@ -412,7 +415,7 @@ export const InteractiveLeafletMap: React.FC<InteractiveLeafletMapProps> = ({
         'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
         {
           attribution: 'Esri Reference',
-          maxNativeZoom: 18,
+          maxNativeZoom: 16,
           maxZoom: 20
         }
       ).addTo(map);
@@ -522,16 +525,15 @@ export const InteractiveLeafletMap: React.FC<InteractiveLeafletMapProps> = ({
     }
 
     const tileConfig = baseMapConfigs[currentBaseMap];
-    const tileUrl = tileConfig.url;
-
-    const newTile = L.tileLayer(tileUrl, {
+    addResilientTileLayer(map, {
+      url: tileConfig.url,
       attribution: tileConfig.attribution,
       maxNativeZoom: tileConfig.maxNativeZoom,
       maxZoom: tileConfig.maxZoom,
-      subdomains: (tileConfig as any).subdomains || 'abc'
-    }).addTo(map);
-
-    currentTileLayerRef.current = newTile;
+      subdomains: (tileConfig as any).subdomains
+    }, (layer) => {
+      currentTileLayerRef.current = layer;
+    });
 
     // Add boundaries and places overlay when satellite, hybrid or ocean
     if ((showLabelsOverlay && currentBaseMap === 'satellite') || currentBaseMap === 'hybrid') {
@@ -539,7 +541,7 @@ export const InteractiveLeafletMap: React.FC<InteractiveLeafletMapProps> = ({
         'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
         {
           attribution: 'Esri Reference',
-          maxNativeZoom: 18,
+          maxNativeZoom: 16,
           maxZoom: 20
         }
       ).addTo(map);

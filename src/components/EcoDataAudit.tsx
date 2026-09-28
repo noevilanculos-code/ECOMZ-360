@@ -114,10 +114,10 @@ export const EcoDataAudit: React.FC<EcoDataAuditProps> = ({
         <div>
           <div className="inline-flex items-center space-x-1.5 bg-slate-900 text-emerald-400 px-2.5 py-0.5 rounded-full text-xs font-semibold mb-1">
             <ShieldCheck className="w-3.5 h-3.5" />
-            <span>Transparência & Qualidade dos Registos</span>
+            <span>Demonstração • Qualidade dos Registos</span>
           </div>
           <h2 className="text-lg font-bold text-slate-900">
-            Histórico de Atividades e Verificação de Denúncias
+            Simulação de Auditoria e Verificação de Denúncias
           </h2>
           <p className="text-xs text-slate-500">
             Acompanhe as validações feitas pela equipa técnica e evite denúncias repetidas da mesma ocorrência.

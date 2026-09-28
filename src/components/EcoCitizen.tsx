@@ -42,7 +42,7 @@ import { CitizenReportTour } from './CitizenReportTour';
 import { exportToPDF } from '../utils/pdfExport';
 
 interface EcoCitizenProps {
-  onAddOccurrence: (newOcc: Occurrence) => void;
+  onAddOccurrence: (newOcc: Occurrence) => Promise<Occurrence>;
   occurrences: Occurrence[];
 }
 
@@ -55,7 +55,7 @@ export const EcoCitizen: React.FC<EcoCitizenProps> = ({ onAddOccurrence, occurre
   const [locationDetails, setLocationDetails] = useState('');
   const [description, setDescription] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
-  const [reporterName, setReporterName] = useState('Noé Samuel Vilanculos');
+  const [reporterName] = useState('Utilizador autenticado');
   const [capturedCoords, setCapturedCoords] = useState<{ lat: number; lng: number }>({
     lat: -19.8211,
     lng: 34.8562
@@ -75,6 +75,7 @@ export const EcoCitizen: React.FC<EcoCitizenProps> = ({ onAddOccurrence, occurre
   const directFileInputRef = useRef<HTMLInputElement | null>(null);
   const [submittedProtocol, setSubmittedProtocol] = useState<string | null>(null);
   const [formValidationError, setFormValidationError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Live Inline Camera in Form State
   const [isInlineCameraOpen, setIsInlineCameraOpen] = useState(false);
@@ -155,13 +156,13 @@ export const EcoCitizen: React.FC<EcoCitizenProps> = ({ onAddOccurrence, occurre
 
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
       attribution: 'Esri World Imagery',
-      maxNativeZoom: 18,
+      maxNativeZoom: 16,
       maxZoom: 20
     }).addTo(map);
 
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
       attribution: 'Esri Reference',
-      maxNativeZoom: 18,
+      maxNativeZoom: 16,
       maxZoom: 20
     }).addTo(map);
 
@@ -499,18 +500,19 @@ export const EcoCitizen: React.FC<EcoCitizenProps> = ({ onAddOccurrence, occurre
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     if (!title.trim() || !district.trim() || !description.trim()) {
       return;
     }
 
-    const uniqueId = `occ-${Date.now()}`;
-    const generatedProtocol = `ECO-2026-MZ-${Math.floor(100 + Math.random() * 900)}`;
+    setIsSubmitting(true);
+    setFormValidationError(null);
 
     const newOcc: Occurrence = {
-      id: uniqueId,
-      protocol: generatedProtocol,
+      id: '',
+      protocol: '',
       title: title.trim(),
       category,
       severity,
@@ -521,20 +523,24 @@ export const EcoCitizen: React.FC<EcoCitizenProps> = ({ onAddOccurrence, occurre
       reportedBy: isAnonymous ? 'Cidadão Anónimo' : reporterName,
       isAnonymous,
       timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
-      status: 'Em Validação',
+      status: 'Recebido',
       description: description.trim(),
       imageUrl: selectedPhoto,
-      validationScore: 85
+      validationScore: 0
     };
 
-    onAddOccurrence(newOcc);
-    setSubmittedProtocol(generatedProtocol);
-
-    // Reset fields
-    setTitle('');
-    setDistrict('');
-    setLocationDetails('');
-    setDescription('');
+    try {
+      const savedOccurrence = await onAddOccurrence(newOcc);
+      setSubmittedProtocol(savedOccurrence.protocol);
+      setTitle('');
+      setDistrict('');
+      setLocationDetails('');
+      setDescription('');
+    } catch (error) {
+      setFormValidationError(error instanceof Error ? error.message : 'Não foi possível registar a ocorrência. Tente novamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleTrackProtocol = (e: React.FormEvent) => {
@@ -1243,10 +1249,11 @@ export const EcoCitizen: React.FC<EcoCitizenProps> = ({ onAddOccurrence, occurre
 
                 <button
                   type="submit"
-                  className="w-full sm:w-1/2 py-3 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-bold text-xs rounded-xl shadow-xs flex items-center justify-center space-x-2 transition-all cursor-pointer"
+                  disabled={isSubmitting}
+                  className="w-full sm:w-1/2 py-3 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-bold text-xs rounded-xl shadow-xs flex items-center justify-center space-x-2 transition-all cursor-pointer disabled:opacity-60 disabled:cursor-wait"
                 >
                   <Send className="w-4 h-4" />
-                  <span>Submeter Ocorrência</span>
+                  <span>{isSubmitting ? 'A guardar...' : 'Submeter Ocorrência'}</span>
                 </button>
               </div>
             </form>

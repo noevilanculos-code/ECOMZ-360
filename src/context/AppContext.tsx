@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
 import {
   Occurrence,
   EnvironmentalProject,
@@ -23,10 +24,13 @@ import {
 } from '../data/masterData';
 
 import {
+  auth,
   emailPasswordSignIn,
   emailPasswordSignUp,
   logout as firebaseLogout
 } from '../lib/googleAuth';
+import { changeOccurrenceStatus, createOccurrence, listOccurrences } from '../lib/occurrencesApi';
+import { createProject, listProjects } from '../lib/projectsApi';
 
 // Re-export interfaces and initial data so existing imports from this module continue to work
 export type { UserProfile, NoticeItem, NewsItem, SimulationScenario, ReportItem };
@@ -41,6 +45,30 @@ export interface RegisteredUserRecord {
   requestedAt: string;
   reviewedAt?: string;
 }
+
+const DEMO_OCCURRENCES: Occurrence[] = import.meta.env.DEV
+  ? MASTER_OCCURRENCES.map((occurrence) => ({
+      ...occurrence,
+      id: `demo-${occurrence.id}`,
+      protocol: `DEMO-${occurrence.protocol}`,
+      reportedBy: 'Conta fictícia de apresentação',
+      description: `[DADO FICTÍCIO] ${occurrence.description}`,
+      imageUrl: undefined,
+      validationScore: 0,
+      assignedTeam: undefined,
+      actionSummary: undefined
+    }))
+  : [];
+
+const DEMO_PROJECTS: EnvironmentalProject[] = import.meta.env.DEV
+  ? MASTER_PROJECTS.map((project) => ({
+      ...project,
+      id: `demo-${project.id}`,
+      title: `DEMO: ${project.title}`,
+      leadEntity: 'Entidade fictícia de demonstração',
+      description: `[DADO FICTÍCIO] ${project.description}`
+    }))
+  : [];
 
 const readRegisteredUsers = (): RegisteredUserRecord[] => {
   try {
@@ -83,9 +111,9 @@ export interface AppContextType {
   simulations: SimulationScenario[];
   reports: ReportItem[];
   addReport: (newReport: Omit<ReportItem, 'id' | 'downloadsCount'>) => ReportItem;
-  addOccurrence: (newOcc: Occurrence) => void;
-  updateOccurrenceStatus: (id: string, status: OccurrenceStatus, note?: string) => void;
-  addProject: (newProj: EnvironmentalProject) => void;
+  addOccurrence: (newOcc: Occurrence) => Promise<Occurrence>;
+  updateOccurrenceStatus: (id: string, status: OccurrenceStatus, note?: string) => Promise<void>;
+  addProject: (newProj: EnvironmentalProject) => Promise<EnvironmentalProject>;
   updateProjectProgress: (id: string, progress: number) => void;
   selectedProvince: MozambiqueProvince | 'Todas';
   setSelectedProvince: (prov: MozambiqueProvince | 'Todas') => void;
@@ -118,15 +146,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return INITIAL_USER_PROFILE;
   });
 
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
-    const token = localStorage.getItem('ecomz_auth');
-    // Only authenticated if explicitly set — no auto-login for first-time visitors
-    return token === 'authenticated';
-  });
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [registeredUsers, setRegisteredUsers] = useState<RegisteredUserRecord[]>(readRegisteredUsers);
 
-  const [occurrences, setOccurrences] = useState<Occurrence[]>(MASTER_OCCURRENCES);
-  const [projects, setProjects] = useState<EnvironmentalProject[]>(MASTER_PROJECTS);
+  const [occurrences, setOccurrences] = useState<Occurrence[]>(DEMO_OCCURRENCES);
+  const [projects, setProjects] = useState<EnvironmentalProject[]>(DEMO_PROJECTS);
   const [notices, setNotices] = useState<NoticeItem[]>(MASTER_NOTICES);
   const [news, setNews] = useState<NewsItem[]>(MASTER_NEWS);
   const [simulations, setSimulations] = useState<SimulationScenario[]>(MASTER_SIMULATIONS);
@@ -222,6 +246,41 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+
+  useEffect(() => onAuthStateChanged(auth, (firebaseUser) => {
+    setIsLoggedIn(Boolean(firebaseUser));
+  }), []);
+
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    let cancelled = false;
+    listOccurrences()
+      .then(({ data }) => {
+        if (!cancelled) setOccurrences(data.length ? data : DEMO_OCCURRENCES);
+      })
+      .catch((error) => {
+        console.error('Não foi possível carregar ocorrências persistidas:', error);
+        if (!cancelled && import.meta.env.DEV) setOccurrences(DEMO_OCCURRENCES);
+      });
+    listProjects()
+      .then(({ data }) => {
+        if (!cancelled) {
+          const loadedProjects = data.length ? data : DEMO_PROJECTS;
+          const loadedIds = new Set(loadedProjects.map((project) => project.id));
+          setProjects((previous) => [
+            ...loadedProjects,
+            ...previous.filter((project) => !loadedIds.has(project.id))
+          ]);
+        }
+      })
+      .catch((error) => {
+        console.error('Não foi possível carregar projetos persistidos:', error);
+        if (!cancelled && import.meta.env.DEV) setProjects(DEMO_PROJECTS);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isLoggedIn]);
 
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
     if (typeof window !== 'undefined') {
@@ -448,11 +507,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Preserve Google credentials for convenience on re-login
   };
 
-  const addOccurrence = (newOcc: Occurrence) => {
-    setOccurrences((prev) => [newOcc, ...prev]);
+  const addOccurrence = async (newOcc: Occurrence): Promise<Occurrence> => {
+    const savedOccurrence = await createOccurrence(newOcc);
+    setOccurrences((prev) => [
+      savedOccurrence,
+      ...prev.filter((item) => !item.id.startsWith('demo-') && item.id !== savedOccurrence.id)
+    ]);
+    return savedOccurrence;
   };
 
-  const updateOccurrenceStatus = (id: string, status: OccurrenceStatus, note?: string) => {
+  const updateOccurrenceStatus = async (id: string, status: OccurrenceStatus, note?: string) => {
+    if (import.meta.env.DEV && id.startsWith('demo-')) {
+      setOccurrences((prev) => prev.map((occurrence) => occurrence.id === id
+        ? { ...occurrence, status, actionSummary: note || occurrence.actionSummary }
+        : occurrence));
+      return;
+    }
+    await changeOccurrenceStatus(id, status, note);
     setOccurrences((prev) =>
       prev.map((occ) => {
         if (occ.id === id) {
@@ -467,8 +538,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
-  const addProject = (newProj: EnvironmentalProject) => {
-    setProjects((prev) => [newProj, ...prev]);
+  const addProject = async (newProj: EnvironmentalProject) => {
+    const savedProject = await createProject(newProj);
+    setProjects((prev) => [
+      savedProject,
+      ...prev.filter((project) => !project.id.startsWith('demo-') && project.id !== savedProject.id)
+    ]);
+    return savedProject;
   };
 
   const addReport = (newReport: Omit<ReportItem, 'id' | 'downloadsCount'>) => {

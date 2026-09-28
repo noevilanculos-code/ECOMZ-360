@@ -15,7 +15,7 @@ export const SimulationsPage: React.FC = () => {
     'clima_mapa' | 'inundacao_mares' | 'ciclones_ingd' | 'ecosim_parametros'
   >('clima_mapa');
 
-  const handleExportSimToProject = (draft: Partial<EnvironmentalProject>) => {
+  const handleExportSimToProject = async (draft: Partial<EnvironmentalProject>) => {
     const newProj: EnvironmentalProject = {
       id: `proj-${Date.now()}`,
       title: draft.title || 'Projeto Gerado no Simulador ECO-MZ',
@@ -35,8 +35,12 @@ export const SimulationsPage: React.FC = () => {
       volunteerSpots: draft.volunteerSpots || 40,
       volunteersEnrolled: 0
     };
-    addProject(newProj);
-    navigate(`/projetos/${newProj.id}`);
+    try {
+      const savedProject = await addProject(newProj);
+      navigate(`/projetos/${savedProject.id}`);
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : 'Não foi possível guardar o projeto.');
+    }
   };
 
   return (

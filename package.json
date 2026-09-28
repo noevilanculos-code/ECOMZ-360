@@ -8,6 +8,7 @@
     "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "start": "node dist/server.cjs",
     "lint": "tsc --noEmit",
+    "typecheck:server": "tsc --noEmit --target ES2022 --module ESNext --moduleResolution Bundler --esModuleInterop --strict --skipLibCheck --types node server.ts server/db.ts server/firebaseAuth.ts server/routes/occurrences.ts server/routes/projects.ts",
     "preview": "vite preview --host 0.0.0.0 --port 3000"
   },
   "dependencies": {
@@ -16,11 +17,13 @@
     "dotenv": "^18.0.2",
     "express": "^5.2.1",
     "firebase": "^12.19.0",
+    "firebase-admin": "^13.6.0",
     "framer-motion": "^13.4.4",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.8",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.16.0",
+    "mysql2": "^3.24.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.18.4",
@@ -29,6 +32,7 @@
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.0",
     "@types/express": "^5.0.6",
+    "@types/node": "^26.6.3",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",

@@ -1,6 +1,9 @@
 @echo off
+setlocal
 title ECO-MZ 360 - Plataforma Ambiental
 cd /d "%~dp0"
+set "ECO_MZ_ROOT=%CD%"
+set "ECO_MZ_URL=http://localhost:3000"
 
 echo.
 echo  ============================================================
@@ -8,65 +11,76 @@ echo    ECO-MZ 360 - Plataforma Ambiental de Mocambique
 echo  ============================================================
 echo.
 
-:: 1. Verificar se Node.js esta instalado
 where node >nul 2>nul
-if %errorlevel% neq 0 goto :erro_node
-echo  [OK] Node.js detectado com sucesso.
-goto :check_modules
+if errorlevel 1 goto :erro_node
+for /f "delims=." %%V in ('node -p "process.versions.node.split('.')[0]"') do set "NODE_MAJOR=%%V"
+if not defined NODE_MAJOR goto :erro_node_version
+if %NODE_MAJOR% LSS 18 goto :erro_node_version
+echo  [OK] Node.js %NODE_MAJOR% detectado.
 
-:erro_node
-echo  [ERRO] Node.js nao foi detectado no sistema!
-echo  Por favor instale o Node.js versao 18 ou superior em:
-echo  https://nodejs.org/
-echo.
-pause
-exit /b 1
+where npm >nul 2>nul
+if errorlevel 1 goto :erro_npm_missing
 
-:check_modules
-:: 2. Instalar dependencias se a pasta node_modules nao existir
-if not exist "node_modules" goto :instalar_deps
-goto :check_env
-
-:instalar_deps
-echo.
-echo  [INFO] Pasta node_modules nao encontrada.
-echo  [INFO] A instalar dependencias do projeto com npm install...
-call npm install
-if %errorlevel% neq 0 goto :erro_npm
-echo  [OK] Dependencias instaladas com sucesso.
-goto :check_env
-
-:erro_npm
-echo  [ERRO] Falha ao instalar dependencias com npm install.
-pause
-exit /b 1
+if exist "node_modules\.bin\tsx.cmd" goto :check_env
+echo  [INFO] Dependencias ausentes; a instalar pelo package-lock.json...
+if exist "package-lock.json" (
+    call npm ci
+) else (
+    call npm install
+)
+if errorlevel 1 goto :erro_instalacao
 
 :check_env
-:: 3. Criar arquivo .env a partir de .env.example se necessario
-if not exist ".env" (
-    if exist ".env.example" copy ".env.example" ".env" >nul 2>nul
-)
+if exist ".env" goto :check_port
+if not exist ".env.example" goto :check_port
+copy /Y ".env.example" ".env" >nul
+echo  [INFO] Foi criado .env a partir de .env.example.
+echo  [INFO] Configure GEMINI_API_KEY e as credenciais do banco conforme necessario.
 
-:: 4. Garantir que a porta 3000 esta livre
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$pids = (Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue).OwningProcess | Select-Object -Unique; if ($pids) { foreach ($p in $pids) { Stop-Process -Id $p -Force -ErrorAction SilentlyContinue; Write-Host ('  [INFO] Porta 3000 libertada - PID: ' + $p) } }"
+:check_port
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$root=$env:ECO_MZ_ROOT; $listeners=@(Get-NetTCPConnection -State Listen -LocalPort 3000 -ErrorAction SilentlyContinue); if (!$listeners) { exit 0 }; foreach ($listener in $listeners) { $process=Get-CimInstance Win32_Process -Filter ('ProcessId=' + $listener.OwningProcess); if ($process.CommandLine -and $process.CommandLine.IndexOf($root,[StringComparison]::OrdinalIgnoreCase) -ge 0 -and $process.CommandLine -match '(?i)(server\.ts|dist[\\/]server\.cjs)') { exit 10 } }; exit 20"
+if %errorlevel% equ 10 goto :already_running
+if %errorlevel% neq 0 goto :erro_porta
 
 echo.
-echo  ============================================================
-echo    Servidor a iniciar em: http://localhost:3000
-echo    Para encerrar: feche esta janela ou execute parar.bat
-echo  ============================================================
+echo  [INFO] A iniciar o servidor em %ECO_MZ_URL%...
+start "" /b powershell -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -Command "$deadline=(Get-Date).AddSeconds(60); while ((Get-Date) -lt $deadline) { try { $health=Invoke-RestMethod -Uri 'http://localhost:3000/api/health' -TimeoutSec 2; if ($health.status -eq 'ok') { Start-Process 'http://localhost:3000'; exit 0 } } catch {}; Start-Sleep -Milliseconds 500 }; Write-Host 'O servidor nao respondeu em 60 segundos.'"
+echo  [INFO] O navegador sera aberto quando /api/health responder.
+echo  [INFO] Mantenha esta janela aberta; execute parar.bat para encerrar.
 echo.
-
-:: 5. Abrir navegador automaticamente em segundo plano
-start "" powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Sleep -Seconds 2; Start-Process 'http://localhost:3000'"
-
-:: 6. Iniciar o servidor
 call npm run dev
+echo.
+echo  [INFO] O servidor ECO-MZ 360 foi encerrado.
+pause
+exit /b 0
 
-if %errorlevel% neq 0 (
-    echo.
-    echo  [AVISO] O servidor foi interrompido.
-)
+:already_running
+echo  [INFO] Ja existe um servidor ECO-MZ 360 deste projeto na porta 3000.
+start "" "%ECO_MZ_URL%"
+exit /b 0
 
+:erro_node
+echo  [ERRO] Node.js nao foi encontrado. Instale Node.js 18 ou superior em https://nodejs.org/
+goto :erro_final
+
+:erro_node_version
+echo  [ERRO] Este projeto requer Node.js 18 ou superior.
+goto :erro_final
+
+:erro_npm_missing
+echo  [ERRO] npm nao foi encontrado. Reinstale Node.js incluindo npm.
+goto :erro_final
+
+:erro_instalacao
+echo  [ERRO] Falha ao instalar as dependencias do projeto.
+goto :erro_final
+
+:erro_porta
+echo  [ERRO] A porta 3000 esta ocupada por outro processo.
+echo  Nenhum processo foi encerrado. Feche o servico que usa a porta e tente novamente.
+goto :erro_final
+
+:erro_final
 echo.
 pause
+exit /b 1

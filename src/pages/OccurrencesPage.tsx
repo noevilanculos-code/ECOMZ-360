@@ -26,6 +26,11 @@ export const OccurrencesPage: React.FC = () => {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
+      {import.meta.env.DEV && occurrences.some((occurrence) => occurrence.protocol.startsWith('DEMO-')) && (
+        <div role="note" className="border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+          Demonstração: as ocorrências com protocolo DEMO- são fictícias e não representam denúncias reais.
+        </div>
+      )}
       {isReportingNew ? (
         <div className="space-y-4">
           <div className="flex justify-between items-center bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
@@ -40,9 +45,10 @@ export const OccurrencesPage: React.FC = () => {
             </button>
           </div>
           <EcoCitizen
-            onAddOccurrence={(newOcc) => {
-              addOccurrence(newOcc);
+            onAddOccurrence={async (newOcc) => {
+              const saved = await addOccurrence(newOcc);
               setIsReportingNew(false);
+              return saved;
             }}
             occurrences={occurrences}
           />
@@ -54,7 +60,11 @@ export const OccurrencesPage: React.FC = () => {
             defaultViewMode={initialViewMode}
             onSelectOccurrence={(occ) => navigate(`/ocorrencias/${occ.id}`)}
             onNewOccurrence={() => setIsReportingNew(true)}
-            onUpdateStatus={(id: string, status: OccurrenceStatus) => updateOccurrenceStatus(id, status)}
+            onUpdateStatus={(id: string, status: OccurrenceStatus) => {
+              void updateOccurrenceStatus(id, status).catch((error) => {
+                window.alert(error instanceof Error ? error.message : 'Não foi possível atualizar a ocorrência.');
+              });
+            }}
           />
 
           {/* Analytical Charts Section Switcher */}
