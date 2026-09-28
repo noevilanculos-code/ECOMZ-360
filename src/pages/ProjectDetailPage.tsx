@@ -21,8 +21,8 @@ export const ProjectDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const { projects } = useApp();
 
-  const project = projects.find((p) => p.id === id) || projects[0];
-  const [volunteersEnrolled, setVolunteersEnrolled] = useState(project?.volunteersEnrolled || 12);
+  const project = projects.find((p) => p.id === id);
+  const [volunteersEnrolled, setVolunteersEnrolled] = useState(project?.volunteersEnrolled ?? 0);
   const [hasJoined, setHasJoined] = useState(false);
 
   if (!project) {

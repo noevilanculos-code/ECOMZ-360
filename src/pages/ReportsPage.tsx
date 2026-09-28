@@ -31,6 +31,14 @@ export const ReportsPage: React.FC = () => {
   const navigate = useNavigate();
   const { reports, occurrences, projects, activeRole } = useApp();
 
+  const [activeCategory, setActiveCategory] = useState<'Gerais' | 'Ocorrências' | 'Projetos' | 'Simulações'>('Gerais');
+  const [search, setSearch] = useState('');
+  const [selectedFormat, setSelectedFormat] = useState('Todos');
+  const [downloadToast, setDownloadToast] = useState<string | null>(null);
+  const [showSpatialMap, setShowSpatialMap] = useState(false);
+  const [showWizard, setShowWizard] = useState(false);
+  const [showMonthlyModal, setShowMonthlyModal] = useState(false);
+
   // Role Access Control: Only Environmental Inspector (tecnico) and Administrator (admin, gestor)
   if (activeRole === 'cidadao') {
     return (
@@ -42,14 +50,6 @@ export const ReportsPage: React.FC = () => {
       />
     );
   }
-
-  const [activeCategory, setActiveCategory] = useState<'Gerais' | 'Ocorrências' | 'Projetos' | 'Simulações'>('Gerais');
-  const [search, setSearch] = useState('');
-  const [selectedFormat, setSelectedFormat] = useState('Todos');
-  const [downloadToast, setDownloadToast] = useState<string | null>(null);
-  const [showSpatialMap, setShowSpatialMap] = useState(false);
-  const [showWizard, setShowWizard] = useState(false);
-  const [showMonthlyModal, setShowMonthlyModal] = useState(false);
 
   const filteredReports = reports.filter((rep) => {
     const matchCategory = activeCategory === 'Gerais' ? true : rep.category === activeCategory;

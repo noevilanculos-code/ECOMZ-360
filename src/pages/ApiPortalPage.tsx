@@ -19,8 +19,6 @@ import { useApp } from '../context/AppContext';
 export const ApiPortalPage: React.FC = () => {
   const { occurrences, projects } = useApp();
   const [activeTab, setActiveTab] = useState<'docs' | 'explorer' | 'export'>('docs');
-  const [apiKey, setApiKey] = useState('ecomz_live_99f482a17cb4c3d82');
-  const [copiedKey, setCopiedKey] = useState(false);
   const [selectedEndpoint, setSelectedEndpoint] = useState('/api/ocorrencias');
   const [apiResponse, setApiResponse] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -81,18 +79,6 @@ export const ApiPortalPage: React.FC = () => {
       ]
     }
   ];
-
-  const handleCopyKey = () => {
-    navigator.clipboard.writeText(apiKey);
-    setCopiedKey(true);
-    setTimeout(() => setCopiedKey(false), 2500);
-  };
-
-  const handleGenerateNewKey = () => {
-    const newKey = `ecomz_live_${Math.random().toString(36).substring(2, 11)}${Math.random().toString(36).substring(2, 11)}`;
-    setApiKey(newKey);
-    setCopiedKey(false);
-  };
 
   const handleTestEndpoint = () => {
     setIsLoading(true);
@@ -290,9 +276,9 @@ export const ApiPortalPage: React.FC = () => {
           {/* Response Console */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300">
-              <span className="flex items-center space-x-1.5">
+                <span className="flex items-center space-x-1.5">
                 <Terminal className="w-4 h-4 text-emerald-500" />
-                <span>Consola de Resposta HTTP (Status: 200 OK)</span>
+                <span>Simulação local de resposta (não chama uma API)</span>
               </span>
               <span className="text-[11px] text-slate-400">Content-Type: application/json; charset=utf-8</span>
             </div>
@@ -302,7 +288,7 @@ export const ApiPortalPage: React.FC = () => {
                 <pre>{apiResponse}</pre>
               ) : (
                 <span className="text-slate-500">
-                  Clique em "Executar Chamada" acima para testar o endpoint em tempo real...
+                  Clique para visualizar uma resposta de exemplo; este explorador não chama um endpoint real.
                 </span>
               )}
             </div>
@@ -319,29 +305,12 @@ export const ApiPortalPage: React.FC = () => {
               <span>Chave de API do Utilizador (Bearer Token)</span>
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Utilize esta chave no cabeçalho <code className="text-emerald-600 bg-emerald-50 dark:bg-emerald-950 px-1 py-0.5 rounded">Authorization: Bearer {'<token>'}</code> para aceder aos dados via scripts Python, R ou aplicações externas.
+              A autenticação por chave de API ainda não está implementada no servidor. Não existe token ativo para copiar ou regenerar.
             </p>
           </div>
 
-          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-3">
-            <span className="font-mono text-xs text-slate-800 dark:text-slate-200 truncate select-all">
-              {apiKey}
-            </span>
-            <div className="flex items-center space-x-2 shrink-0">
-              <button
-                onClick={handleCopyKey}
-                className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 hover:bg-slate-100 text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center space-x-1 cursor-pointer"
-              >
-                {copiedKey ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copiedKey ? 'Copiado!' : 'Copiar'}</span>
-              </button>
-              <button
-                onClick={handleGenerateNewKey}
-                className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold cursor-pointer"
-              >
-                Regenerar
-              </button>
-            </div>
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
+            As respostas do explorador são dados demonstrativos locais. Não use estes exemplos para integrar sistemas externos.
           </div>
 
           <div className="p-4 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-200 flex items-start space-x-3">

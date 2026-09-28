@@ -9,8 +9,36 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
-app.use(express.json());
+app.use(express.json({ limit: '128kb' }));
 app.use('/assets', express.static(path.join(process.cwd(), 'assets')));
+
+const AI_REQUEST_WINDOW_MS = 60_000;
+const AI_REQUEST_LIMIT = 10;
+const aiRequestBuckets = new Map<string, { count: number; resetAt: number }>();
+
+app.use('/api/gemini/chat', (req, res, next) => {
+  const now = Date.now();
+  const clientKey = req.ip || req.socket.remoteAddress || 'unknown';
+  let bucket = aiRequestBuckets.get(clientKey);
+
+  if (!bucket || bucket.resetAt <= now) {
+    if (aiRequestBuckets.size > 5000) {
+      for (const [key, value] of aiRequestBuckets) {
+        if (value.resetAt <= now) aiRequestBuckets.delete(key);
+      }
+    }
+    bucket = { count: 0, resetAt: now + AI_REQUEST_WINDOW_MS };
+    aiRequestBuckets.set(clientKey, bucket);
+  }
+
+  if (bucket.count >= AI_REQUEST_LIMIT) {
+    res.setHeader('Retry-After', Math.ceil((bucket.resetAt - now) / 1000));
+    return res.status(429).json({ error: 'Limite temporário de pedidos atingido. Tente novamente dentro de um minuto.' });
+  }
+
+  bucket.count += 1;
+  next();
+});
 
 // Lazy-initialization of GoogleGenAI client with required User-Agent
 let aiClient: GoogleGenAI | null = null;
@@ -62,7 +90,6 @@ Postura: acessível, empática e focada em soluções práticas para cidadãos e
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
-    hasGeminiKey: Boolean(process.env.GEMINI_API_KEY),
     timestamp: new Date().toISOString()
   });
 });
@@ -81,6 +108,18 @@ app.post('/api/gemini/chat', async (req, res) => {
 
     if (!message || typeof message !== 'string') {
       return res.status(400).json({ error: 'Mensagem do utilizador é obrigatória.' });
+    }
+    if (message.length > 4000) {
+      return res.status(413).json({ error: 'A mensagem excede o limite de 4.000 caracteres.' });
+    }
+    if (!Array.isArray(messages) || messages.length > 20) {
+      return res.status(400).json({ error: 'O histórico deve conter no máximo 20 mensagens.' });
+    }
+    if (messages.some((turn: any) => !turn || typeof turn.content !== 'string' || turn.content.length > 4000)) {
+      return res.status(400).json({ error: 'Cada mensagem do histórico deve ser texto com até 4.000 caracteres.' });
+    }
+    if (!['none', 'search', 'maps'].includes(grounding)) {
+      return res.status(400).json({ error: 'Modo de pesquisa inválido.' });
     }
 
     const ai = getGeminiClient();
@@ -119,10 +158,7 @@ app.post('/api/gemini/chat', async (req, res) => {
     const contents: Array<{ role: string; parts: Array<{ text: string }> }> = [];
 
     if (Array.isArray(messages)) {
-      // Limit conversation history to the last 20 turns to avoid exceeding Gemini token limits
-      const MAX_HISTORY_TURNS = 20;
-      const recentMessages = messages.slice(-MAX_HISTORY_TURNS);
-      for (const turn of recentMessages) {
+      for (const turn of messages) {
         if (turn.content && (turn.role === 'user' || turn.role === 'model')) {
           contents.push({
             role: turn.role,
@@ -254,16 +290,9 @@ app.post('/api/gemini/chat', async (req, res) => {
 
     if (isQuotaExceeded) {
       return res.status(200).json({
-        text: `[Aviso de Quota da API Gemini]\nO limite temporário de requisições para a ferramenta externa foi atingido na chave atual. Se desejar maior capacidade, pode configurar uma chave faturada no menu **Settings > Secrets**.\n\n` +
-          `Orientação rápida do sistema ECO-MZ 360:\n` +
-          `• **Avisos Meteorológicos Oficiais:** Consulte o Instituto Nacional de Meteorologia de Moçambique (INAM).\n` +
-          `• **Apoio a Desastres e Ciclones:** Contacte a Linha Verde do INGD pelo 800 112 112 (gratuita).\n` +
-          `• **Fiscalização Ambiental:** Contacte as brigadas provinciais da AQUA ou a Polícia de Proteção Ambiental.`,
-        groundingSources: [
-          { type: 'web', title: 'Instituto Nacional de Meteorologia (INAM)', uri: 'https://www.inam.gov.mz' },
-          { type: 'web', title: 'Instituto Nacional de Gestão de Desastres (INGD)', uri: 'https://www.ingd.gov.mz' }
-        ],
-        searchQueries: ['INAM Moçambique', 'INGD Moçambique'],
+        text: 'O limite temporário do assistente foi atingido. Aguarde alguns minutos e tente novamente.',
+        groundingSources: [],
+        searchQueries: [],
         modelUsed: 'gemini-fallback',
         isFallback: true
       });
@@ -287,8 +316,7 @@ app.post('/api/gemini/chat', async (req, res) => {
     }
 
     res.status(500).json({
-      error: 'Falha ao processar resposta com o Gemini.',
-      details: errMsg
+      error: 'Não foi possível processar o pedido. Tente novamente mais tarde.'
     });
   }
 });
@@ -735,8 +763,7 @@ Retorne ESTRITAMENTE um objeto JSON válido, sem texto antes ou depois, seguindo
   } catch (error: any) {
     console.error('Erro ao obter métricas ambientais:', error);
     res.status(500).json({
-      error: 'Erro interno ao consultar dados ambientais.',
-      details: error.message
+      error: 'Erro interno ao consultar dados ambientais.'
     });
   }
 });

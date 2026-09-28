@@ -69,17 +69,17 @@ export const EcoFund: React.FC<EcoFundProps> = ({ projects = INITIAL_PROJECTS })
             <span>ECO-FUND • Financiamento e Transparência Financeira</span>
           </div>
           <h2 className="text-lg font-bold text-slate-900">
-            Apoio a Projetos Ambientais e Prestação de Contas Pública
+            Demonstração de Apoio a Projetos Ambientais
           </h2>
           <p className="text-xs text-slate-500">
-            Conforme a Secção 2.3 do Documento de Extensão Funcional v1.1: orçamentos abertos, selo de "Projeto Financiado" e relatório integrado ao ECO-ACTION.
+            Valores e campanhas abaixo são dados demonstrativos; não representam captação, auditoria ou financiamento real.
           </p>
         </div>
 
         <div className="flex items-center space-x-2">
           <span className="px-3 py-1.5 rounded-xl bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center gap-1.5">
             <ShieldCheck className="w-4 h-4 text-emerald-700" />
-            <span>100% Auditado</span>
+            <span>Dados demonstrativos</span>
           </span>
         </div>
       </div>

@@ -42,7 +42,7 @@ export const SplashPage: React.FC = () => {
       <div className="relative z-10 pt-8 sm:pt-10">
         <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-[#00A651]/20 text-[#00B956] border border-[#00A651]/30 text-xs font-semibold backdrop-blur-md shadow-xs">
           <Sparkles className="w-3.5 h-3.5 text-[#00B956]" />
-          <span>República de Moçambique • Observatório Nacional</span>
+          <span>Moçambique • Projeto ECO-MZ 360</span>
         </div>
       </div>
 

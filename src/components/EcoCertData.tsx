@@ -20,8 +20,6 @@ interface EcoCertDataProps {
 
 export const EcoCertData: React.FC<EcoCertDataProps> = ({ occurrences }) => {
   const [subTab, setSubTab] = useState<'cert' | 'data' | 'api'>('cert');
-  const [copiedKey, setCopiedKey] = useState(false);
-  const [apiKey] = useState('ecomz_live_99f482a17cb4c3d82');
 
   // Eco-Cert evaluation state
   const [companyName, setCompanyName] = useState('Empresa Verde do Zambeze, Lda.');
@@ -319,17 +317,7 @@ export const EcoCertData: React.FC<EcoCertDataProps> = ({ occurrences }) => {
 
             <div className="flex items-center space-x-2 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-mono">
               <Key className="w-3.5 h-3.5 text-slate-500" />
-              <span className="text-slate-700 font-bold">{apiKey}</span>
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(apiKey);
-                  setCopiedKey(true);
-                  setTimeout(() => setCopiedKey(false), 2000);
-                }}
-                className="text-emerald-700 font-bold ml-2 hover:underline"
-              >
-                {copiedKey ? 'Copiada!' : 'Copiar'}
-              </button>
+              <span className="text-slate-700 font-bold">API ainda não implementada</span>
             </div>
           </div>
 
@@ -341,7 +329,7 @@ export const EcoCertData: React.FC<EcoCertDataProps> = ({ occurrences }) => {
               <div className="text-emerald-400">GET /api/v1/alerts?level=Vermelho</div>
               <div className="text-slate-400 pt-2"># 3. Submeter relatório com chave de autenticação</div>
               <div className="text-blue-400">POST /api/v1/occurrences</div>
-              <div className="text-slate-400">Header: Authorization: Bearer {apiKey}</div>
+              <div className="text-slate-400">Este trecho é documentação demonstrativa, não uma chave utilizável.</div>
             </div>
           </div>
         </div>

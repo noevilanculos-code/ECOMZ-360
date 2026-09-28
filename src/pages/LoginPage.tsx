@@ -219,7 +219,7 @@ export const LoginPage: React.FC = () => {
         <div className="relative z-10 my-auto py-6 max-w-xl">
           <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-emerald-300 text-xs font-semibold mb-5 shadow-xs">
             <Shield className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Observatório Ambiental Nacional • ECO-MZ 360</span>
+            <span>Projeto ECO-MZ 360 • Monitorização Ambiental</span>
           </div>
 
           <h1 className="text-3xl xl:text-4xl font-black text-white tracking-tight leading-snug">
@@ -227,7 +227,7 @@ export const LoginPage: React.FC = () => {
           </h1>
 
           <p className="text-sm text-slate-300 mt-4 leading-relaxed max-w-lg font-normal">
-            Plataforma oficial de observação contínua, análise climática preditiva e resposta rápida coordenada nas 11 províncias.
+            Protótipo académico para organizar observações ambientais, cenários territoriais e respostas comunitárias em Moçambique.
           </p>
 
           {/* 3 Executive Capability Pillars */}
@@ -236,9 +236,9 @@ export const LoginPage: React.FC = () => {
               <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-2.5">
                 <Satellite className="w-4 h-4" />
               </div>
-              <h3 className="text-xs font-bold text-white mb-1">Vigilância Satelital</h3>
+              <h3 className="text-xs font-bold text-white mb-1">Monitorização Territorial</h3>
               <p className="text-[11px] text-slate-300 leading-snug">
-                Monitoramento óptico e radar em tempo real.
+                Visualização cartográfica e camadas demonstrativas.
               </p>
             </div>
 
@@ -248,7 +248,7 @@ export const LoginPage: React.FC = () => {
               </div>
               <h3 className="text-xs font-bold text-white mb-1">Resposta a Alertas</h3>
               <p className="text-[11px] text-slate-300 leading-snug">
-                Detecção precoce de queimadas e desmate.
+                Acompanhamento demonstrativo de ocorrências ambientais.
               </p>
             </div>
 
@@ -258,7 +258,7 @@ export const LoginPage: React.FC = () => {
               </div>
               <h3 className="text-xs font-bold text-white mb-1">11 Províncias</h3>
               <p className="text-[11px] text-slate-300 leading-snug">
-                Integração direta MTA, AQUA, FNDS e INGD.
+                Dados e exemplos para as 11 províncias.
               </p>
             </div>
           </div>

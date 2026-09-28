@@ -263,12 +263,12 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
               <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-xs">
                 <span className="font-bold text-slate-800 block">Autenticação e Chaves de Acesso:</span>
                 <div className="flex items-center justify-between text-slate-600 bg-white p-2.5 rounded-lg border border-slate-200">
-                  <span className="font-mono text-[11px]">Chave API Administrador: ecomz_live_sec_***</span>
-                  <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">Ativa</span>
+                  <span className="text-[11px]">Chaves de API próprias</span>
+                  <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded">Não implementadas</span>
                 </div>
                 <div className="flex items-center justify-between text-slate-600 bg-white p-2.5 rounded-lg border border-slate-200">
                   <span>Autenticação em 2 Fatores (2FA)</span>
-                  <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">Habilitada via SMS / OTP</span>
+                  <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded">Não configurada</span>
                 </div>
               </div>
             </div>

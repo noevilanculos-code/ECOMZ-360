@@ -383,9 +383,9 @@ export const UserProfilePage: React.FC = () => {
 
               <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
                 <h4 className="font-bold text-slate-800 dark:text-white">Autenticação de Dois Fatores (2FA)</h4>
-                <p className="text-slate-500 mt-1">Ativada via aplicativo autenticador.</p>
-                <span className="inline-block mt-2 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
-                  ✓ Proteção Ativa
+                <p className="text-slate-500 mt-1">A autenticação de dois fatores ainda não está configurada neste protótipo.</p>
+                <span className="inline-block mt-2 px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold">
+                  Não configurada
                 </span>
               </div>
             </div>
